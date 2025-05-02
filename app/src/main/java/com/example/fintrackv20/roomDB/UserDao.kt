@@ -22,4 +22,7 @@ interface UserDao {
     //Get User info using email
     @Query("SELECT * FROM user_table WHERE email = :email")
     fun getUserByEmail(email: String): User?
+
+    @Query("SELECT * FROM user_table WHERE userId = :userId")
+    suspend fun getUserById(userId: Long): User?
 }

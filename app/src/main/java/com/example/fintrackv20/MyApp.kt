@@ -19,12 +19,11 @@ class MyApp: Application() {
     private fun initializeDatabaseWithUsers() {
         val db = FinTrackDB.getInstance(applicationContext)
         val userDao = db.userDao()
-        //val transactionDao = db.transactionDao()
+        val transactionDao = db.transactionDao()
         //val categoryDao = db.categoryDao()
 
         CoroutineScope(Dispatchers.IO).launch {
             // Check if the database is already populated to avoid duplicates
-            //userDao.getAllUsers().isEmpty()
             val users = if (userDao.getAllUsers().isEmpty()) {
                 val user1 = User(
                     email = "varlene@example.com",

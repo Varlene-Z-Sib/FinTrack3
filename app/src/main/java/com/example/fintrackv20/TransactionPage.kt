@@ -20,6 +20,9 @@
                 insets
             }
 
+            // Get the userId passed from MainPage
+            val userId = intent.getStringExtra("USER_ID")
+
             // Code for navigating back to MainPage when nav_home is clicked
             val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigation)
             bottomNavigationView.setOnItemSelectedListener { item ->
