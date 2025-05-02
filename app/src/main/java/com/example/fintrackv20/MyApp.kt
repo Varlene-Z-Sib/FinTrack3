@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import com.example.fintrackv20.roomDB.FinTrackDB
 import com.example.fintrackv20.roomDB.User
+import com.example.fintrackv20.roomDB.Category
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -19,8 +20,8 @@ class MyApp: Application() {
     private fun initializeDatabaseWithUsers() {
         val db = FinTrackDB.getInstance(applicationContext)
         val userDao = db.userDao()
-        val transactionDao = db.transactionDao()
-        //val categoryDao = db.categoryDao()
+        //val transactionDao = db.transactionDao()
+        val categoryDao = db.categoryDao()
 
         CoroutineScope(Dispatchers.IO).launch {
             // Check if the database is already populated to avoid duplicates
@@ -55,6 +56,20 @@ class MyApp: Application() {
             } else {
                 Log.d("DBInit", "Database already contains users, skipping initial population")
             }
+
+
+                if (categoryDao.getAllCategories().isEmpty()) {
+                    categoryDao.insert(Category(userId = "1", name = "Groceries"))
+                    categoryDao.insert(Category(userId = "2", name = "Entertainment"))
+                    categoryDao.insert(Category(userId = "3", name = "Food"))
+                    categoryDao.insert(Category(userId = "1", name = "Tech"))
+                    categoryDao.insert(Category(userId = "2", name = "Movies"))
+                    categoryDao.insert(Category(userId = "3", name = "Movies"))
+                    Log.d("DBInit", "Initial categories added")
+                } else {
+                    Log.d("DBInit", "Categories already exist.")
+                }
+
         }
     }
 }

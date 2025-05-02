@@ -47,6 +47,9 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    // Add the lifecycle-viewmodel-ktx dependency here on a new line
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0-alpha02")
+
     //RoomDB
     implementation("androidx.room:room-runtime:2.7.1")
     ksp("androidx.room:room-compiler:2.7.1")

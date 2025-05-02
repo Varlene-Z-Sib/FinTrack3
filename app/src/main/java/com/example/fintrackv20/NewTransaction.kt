@@ -13,7 +13,15 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.Manifest
 import android.content.pm.PackageManager
+import android.icu.text.SimpleDateFormat
 import android.util.Log
+import com.example.fintrackv20.roomDB.FinTrackDB
+import com.example.myapplication.room.Transaction
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.sql.Date
 
 private const val REQUEST_CODE_PICK_IMAGE = 124
 private const val REQUEST_CODE_STORAGE_PERMISSION = 457
@@ -22,12 +30,16 @@ class NewTransaction : AppCompatActivity() {
 
     private lateinit var filepathText: TextView
     private var selectedImageUri: Uri? = null
+    private lateinit var db: FinTrackDB // Room database instance
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_transaction)
 
-        filepathText = findViewById(R.id.txt_uploadpath) // Initialize here
+        // Get the userId passed from MainPage
+        val userId = intent.getStringExtra("USER_ID")
+
+        filepathText = findViewById(R.id.txt_uploadpath)
 
         val amountEditText = findViewById<EditText>(R.id.et_amount)
         val categorySpinner = findViewById<Spinner>(R.id.sp_category)
@@ -38,6 +50,8 @@ class NewTransaction : AppCompatActivity() {
         val cancelButton = findViewById<Button>(R.id.btn_cancel)
         val pictureButton = findViewById<Button>(R.id.btn_picture)
 
+        // Initialize the FinTrackDB
+        db = FinTrackDB.getInstance(applicationContext)
 
         val categories = listOf("Food", "Tech", "Investment", "Shopping")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
@@ -59,18 +73,54 @@ class NewTransaction : AppCompatActivity() {
             val type = if (typeGroup.checkedRadioButtonId == R.id.rb_expense) "Expense" else "Income"
             val amount = amountEditText.text.toString().toDoubleOrNull()
             val category = categorySpinner.selectedItem.toString()
-            val date = dateEditText.text.toString()
+            val dateString = dateEditText.text.toString()
             val description = descriptionEditText.text.toString()
-            val filepath = filepathText.text.toString()
+            val imagePath = filepathText.text.toString().takeIf { it != "No file chosen" && it.isNotEmpty() }
 
-            if (amount != null && date.isNotEmpty()) {
-                // For now, just toast the transaction
-                Toast.makeText(this, "$type: R$amount - $category on $date", Toast.LENGTH_LONG).show()
-                finish()
+            if (amount != null && dateString.isNotEmpty()) {
+                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                val transactionDate = sdf.parse(dateString)
+
+                // Assuming you have a way to get the current user's ID
+                val currentUserId = userId.toString() // Replace with your actual user ID retrieval logic
+
+                if (transactionDate != null) {
+                    val newTransaction = Transaction(
+                        amount = amount,
+                        description = description,
+                        image = imagePath,
+                        date = Date(transactionDate.time),
+                        userId = currentUserId,
+                        category = category
+                    )
+
+                    // Insert the new transaction into the database using a coroutine
+                    CoroutineScope(Dispatchers.IO).launch {
+                        db.transactionDao().insert(newTransaction)
+                        // Switch back to the main thread for UI updates
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@NewTransaction, "Transaction added", Toast.LENGTH_SHORT).show()
+                            // Create an Intent to go back to TransactionPage
+                            val intent = Intent(this@NewTransaction, TransactionPage::class.java).apply {
+                                // Pass the USER_ID back to TransactionPage
+                                putExtra("USER_ID", currentUserId)
+                            }
+                            startActivity(intent)
+                            finish() // Optional: Close NewTransaction activity
+                        }
+                    }
+                } else {
+                    Toast.makeText(this@NewTransaction, "Invalid date format", Toast.LENGTH_SHORT).show()
+                }
             } else {
                 Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
             }
         }
+
+        cancelButton.setOnClickListener {
+            finish()
+        }
+
 
         pictureButton.setOnClickListener {
             if (checkStoragePermission()) {

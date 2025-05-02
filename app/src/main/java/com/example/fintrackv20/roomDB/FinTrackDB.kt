@@ -9,12 +9,15 @@ import com.example.myapplication.room.Transaction
 import com.example.myapplication.room.TransactionDao
 
 @Database(entities = [User :: class,
-                        Transaction :: class],
+                        Transaction :: class,
+                        Category :: class],
                         version = 1)
 @TypeConverters(Converters::class)
 abstract class FinTrackDB : RoomDatabase() {
+
     abstract fun userDao(): UserDao
     abstract fun transactionDao() : TransactionDao
+    abstract fun categoryDao(): CategoryDao
 
     companion object {
         @Volatile
