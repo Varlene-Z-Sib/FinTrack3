@@ -1,0 +1,155 @@
+package com.example.fintrackv20
+
+import android.app.Activity
+import android.app.DatePickerDialog
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+import java.util.*
+import android.provider.MediaStore
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import android.Manifest
+import android.content.pm.PackageManager
+import android.util.Log
+
+private const val REQUEST_CODE_PICK_IMAGE = 124
+private const val REQUEST_CODE_STORAGE_PERMISSION = 457
+
+class NewTransaction : AppCompatActivity() {
+
+    private lateinit var filepathText: TextView
+    private var selectedImageUri: Uri? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_new_transaction)
+
+        filepathText = findViewById(R.id.txt_uploadpath) // Initialize here
+
+        val amountEditText = findViewById<EditText>(R.id.et_amount)
+        val categorySpinner = findViewById<Spinner>(R.id.sp_category)
+        val dateEditText = findViewById<EditText>(R.id.et_date)
+        val descriptionEditText = findViewById<EditText>(R.id.et_description)
+        val typeGroup = findViewById<RadioGroup>(R.id.typeGroup)
+        val addButton = findViewById<Button>(R.id.btn_add)
+        val cancelButton = findViewById<Button>(R.id.btn_cancel)
+        val pictureButton = findViewById<Button>(R.id.btn_picture)
+
+
+        val categories = listOf("Food", "Tech", "Investment", "Shopping")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        categorySpinner.adapter = adapter
+
+        dateEditText.setOnClickListener {
+            val c = Calendar.getInstance()
+            val year = c.get(Calendar.YEAR)
+            val month = c.get(Calendar.MONTH)
+            val day = c.get(Calendar.DAY_OF_MONTH)
+
+            DatePickerDialog(this, { _, selectedYear, selectedMonth, selectedDay ->
+                dateEditText.setText(String.format("%02d/%02d/%d", selectedDay, selectedMonth + 1, selectedYear))
+            }, year, month, day).show()
+        }
+
+        addButton.setOnClickListener {
+            val type = if (typeGroup.checkedRadioButtonId == R.id.rb_expense) "Expense" else "Income"
+            val amount = amountEditText.text.toString().toDoubleOrNull()
+            val category = categorySpinner.selectedItem.toString()
+            val date = dateEditText.text.toString()
+            val description = descriptionEditText.text.toString()
+            val filepath = filepathText.text.toString()
+
+            if (amount != null && date.isNotEmpty()) {
+                // For now, just toast the transaction
+                Toast.makeText(this, "$type: R$amount - $category on $date", Toast.LENGTH_LONG).show()
+                finish()
+            } else {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        pictureButton.setOnClickListener {
+            if (checkStoragePermission()) {
+                openImagePicker()
+            } else {
+                requestStoragePermission()
+            }
+        }
+
+    }
+
+    private fun checkStoragePermission(): Boolean {
+        val permission = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+        return permission == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestStoragePermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+            REQUEST_CODE_STORAGE_PERMISSION
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CODE_STORAGE_PERMISSION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openImagePicker()
+            } else {
+                Toast.makeText(
+                    this,
+                    "Storage permission is required to select an image",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun openImagePicker() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, REQUEST_CODE_PICK_IMAGE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_PICK_IMAGE && resultCode == Activity.RESULT_OK) {
+            if (data != null) {
+                selectedImageUri = data.data // Store the URI
+                selectedImageUri?.let { uri ->
+                    val filePath = getRealPathFromURI(uri) //Use new function
+                    filepathText.text = filePath ?: "No path available"
+                    Log.d("NewTransactionActivity", "File Path: $filePath, URI: $uri")
+                }
+            }
+        }
+    }
+
+    //Helper function to get the actual file path
+    private fun getRealPathFromURI(contentURI: Uri): String? {
+        val cursor = contentResolver.query(contentURI, null, null, null, null)
+        return cursor?.use {
+            if (it.moveToFirst()) {
+                val columnIndex = it.getColumnIndex(MediaStore.Images.Media.DATA)
+                if (columnIndex >= 0) {
+                    it.getString(columnIndex)
+                } else {
+                    null
+                }
+            } else {
+                null
+            }
+        }
+    }
+}
