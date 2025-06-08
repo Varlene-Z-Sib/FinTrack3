@@ -1,1 +1,49 @@
-/build
+
+# Android Studio
+.idea/
+.gradle/
+local.properties
+*.iml
+
+# Build files
+/build/
+*/build/
+
+# Generated files
+captures/
+output.json
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services
+google-services.json
+
+# Log files
+*.log
+
+# Crashlytics
+fabric.properties
+crashlytics-build.properties
+
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Kotlin/Java
+*.class
+
+# Firebase Crashlytics (optional)
+firebase-crashlytics-*
+
+# Fastlane (optional)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+
+# Other
+.env
