@@ -1,10 +1,10 @@
-package com.example.fintrackv20
+package com.example.fintrack3
 
 import android.app.Application
 import android.util.Log
-import com.example.fintrackv20.roomDB.FinTrackDB
-import com.example.fintrackv20.roomDB.User
-import com.example.fintrackv20.roomDB.Category
+import com.example.fintrack3.roomDB.FinTrackDB
+import com.example.fintrack3.roomDB.User
+import com.example.fintrack3.roomDB.Category
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package com.example.fintrackv20.roomDB
+package com.example.fintrack3.roomDB
 
 import android.content.Context
 import androidx.room.Database

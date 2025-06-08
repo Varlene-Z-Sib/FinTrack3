@@ -1,8 +1,7 @@
-package com.example.fintrackv20.roomDB
+package com.example.fintrack3.roomDB
 
 import androidx.room.TypeConverter
 import java.sql.Date
-import java.sql.Time
 
 class Converters {
     @TypeConverter

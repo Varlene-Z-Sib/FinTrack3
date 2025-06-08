@@ -1,4 +1,4 @@
-package com.example.fintrackv20
+package com.example.fintrack3
 
 import android.app.Activity
 import android.app.DatePickerDialog
@@ -15,7 +15,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import android.util.Log
-import com.example.fintrackv20.roomDB.FinTrackDB
+import com.example.fintrack3.roomDB.FinTrackDB
 import com.example.myapplication.room.Transaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

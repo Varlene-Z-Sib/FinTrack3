@@ -1,4 +1,4 @@
-package com.example.fintrackv20
+package com.example.fintrack3
 
 import org.junit.Test
 

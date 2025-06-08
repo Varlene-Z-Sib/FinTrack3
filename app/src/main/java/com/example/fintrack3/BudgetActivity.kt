@@ -1,4 +1,4 @@
-package com.example.fintrackv20
+package com.example.fintrack3
 
 import android.os.Bundle
 import android.widget.TextView
@@ -6,8 +6,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.fintrackv20.roomDB.FinTrackDB
-import com.example.fintrackv20.roomDB.UserDao
+import com.example.fintrack3.roomDB.FinTrackDB
+import com.example.fintrack3.roomDB.UserDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

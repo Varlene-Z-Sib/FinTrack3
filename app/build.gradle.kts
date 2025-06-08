@@ -2,14 +2,16 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.devtools.ksp")
+
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.fintrackv20"
+    namespace = "com.example.fintrack3"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.fintrackv20"
+        applicationId = "com.example.fintrack3"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -37,12 +39,16 @@ android {
 }
 
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
+    implementation("com.google.firebase:firebase-auth")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

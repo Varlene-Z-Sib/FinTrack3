@@ -1,4 +1,4 @@
-package com.example.fintrackv20.roomDB
+package com.example.fintrack3.roomDB
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

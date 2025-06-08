@@ -1,4 +1,4 @@
-package com.example.fintrackv20
+package com.example.fintrack3
 
 import android.view.LayoutInflater
 import android.view.View
@@ -8,8 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.fintrackv20.R
-import com.example.fintrackv20.TransactionViewModel
+import com.example.fintrack3.R
 
 class TransactionAdapter : ListAdapter<TransactionViewModel.TransactionItem, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()) {
 

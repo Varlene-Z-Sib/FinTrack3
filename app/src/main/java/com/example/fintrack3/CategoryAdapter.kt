@@ -1,12 +1,12 @@
-package com.example.fintrackv20.adapter
+package com.example.fintrack3.adapter
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.fintrackv20.R
-import com.example.fintrackv20.roomDB.Category
+import com.example.fintrack3.R
+import com.example.fintrack3.roomDB.Category
 
 class CategoryAdapter(private var categoryList: List<Category>) :
     RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
