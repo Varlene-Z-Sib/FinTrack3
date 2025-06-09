@@ -9,7 +9,9 @@
         android:id="@+id/subscriptionRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/fabAdd" />
+        android:layout_above="@+id/fabAdd"
+        android:importantForAccessibility="no" />
+
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"

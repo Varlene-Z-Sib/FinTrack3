@@ -1,3 +1,23 @@
 <resources>
     <string name="app_name">FinTrackV2.0</string>
+
+<!-- Titles -->
+<string name="achievements_title">Achievements</string>
+<string name="your_achievements">Your Achievements</string>
+<string name="available_badges">Available Badges</string>
+
+
+<!-- User points and level texts with placeholders -->
+<string name="user_level">Budget Master Level %1$d</string>
+<string name="total_points">Total Points: %1$d</string>
+<string name="next_level_message">%1$d more points to reach Level %2$d</string><string name="achievements_list_description">List of your achievements</string>
+    <string name="available_badges_list_description">List of available badges</string>
+
+<!-- Toast messages -->
+<string name="user_not_logged_in">User not logged in</string>
+<string name="load_achievements_failed">Failed to load achievements: %1$s</string>
+    <string name="desc_previous_month">Previous month</string>
+    <string name="desc_next_month">Next month</string>
+
+
 </resources>
