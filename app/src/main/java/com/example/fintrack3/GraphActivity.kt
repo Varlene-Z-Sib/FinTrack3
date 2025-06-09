@@ -141,11 +141,14 @@ class GraphActivity : AppCompatActivity() {
     }
 
     private fun updatePieChart(categorySpending: Map<String, Double>) {
-        if (categorySpending.isEmpty()) {
-            pieChart.visibility = View.GONE
-            tvNoData.visibility = View.VISIBLE
-            return
+        // After updatePieChart(...) in loadChartData:
+        if (categorySpending.isNotEmpty()) {
+            findViewById<TextView>(R.id.tvTopCategory).apply {
+                text = "Top: ${categorySpending.maxByOrNull { it.value }!!.key}"
+                visibility = View.VISIBLE
+            }
         }
+
 
         val entries = categorySpending.map { PieEntry(it.value.toFloat(), it.key) }
 

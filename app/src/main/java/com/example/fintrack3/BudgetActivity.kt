@@ -2,183 +2,133 @@ package com.example.fintrack3
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.button.MaterialButtonToggleGroup
+
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import java.text.SimpleDateFormat
+import java.text.NumberFormat
 import java.util.*
 
 class BudgetActivity : AppCompatActivity() {
 
-    private lateinit var txtCurrentMonth: TextView
+    private lateinit var db: FirebaseFirestore
+    private lateinit var auth: FirebaseAuth
+
     private lateinit var tvCurrentSpending: TextView
     private lateinit var tvTopCategory: TextView
     private lateinit var tvSavingsGoal: TextView
-    private lateinit var tvTechGoal: TextView
+    private lateinit var tvLimit: TextView
     private lateinit var progressSavings: ProgressBar
-    private lateinit var progressTech: ProgressBar
-    private lateinit var btnPrevMonth: ImageButton
-    private lateinit var btnNextMonth: ImageButton
-    private lateinit var toggleGroup: MaterialButtonToggleGroup
-    private lateinit var settingsIcon: ImageView
-    private lateinit var wallletIcon: ImageView
 
-    private var currentMonth: Calendar = Calendar.getInstance()
 
-    private val firestore = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
+    // Default budget values
+    private var savingsGoal = 3000.0
+    private var expenseLimit = 1500.0
+
+    private val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale("en", "ZA")) // R-format
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_budget)
 
-        // UI references
-        txtCurrentMonth = findViewById(R.id.txtCurrentMonth)
+        // Initialize Firebase
+        auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
+
+        // Find Views
         tvCurrentSpending = findViewById(R.id.tvCurrentSpending)
         tvTopCategory = findViewById(R.id.tvTopCategory)
         tvSavingsGoal = findViewById(R.id.tvSavingsGoal)
-        tvTechGoal = findViewById(R.id.tvTechGoal)
+        tvLimit = findViewById(R.id.tvLimit)
         progressSavings = findViewById(R.id.progressSavings)
-        progressTech = findViewById(R.id.progressTech)
-        btnPrevMonth = findViewById(R.id.btnPrevMonth)
-        btnNextMonth = findViewById(R.id.btnNextMonth)
-        toggleGroup = findViewById(R.id.btnTogglePeriod)
+<<<<<<
 
-        updateMonthDisplay()
+        btnNewBudget = findViewById(R.id.btnNewBudget)
+        btnViewGraphs = findViewById(R.id.btnViewGraphs)
 
-        val userId = intent.getStringExtra("USER_ID")
-
-        // Handle month changes
-        btnPrevMonth.setOnClickListener {
-            currentMonth.add(Calendar.MONTH, -1)
-            updateMonthDisplay()
-            fetchBudgetData()
+        btnNewBudget.setOnClickListener {
+            showNewBudgetDialog()
         }
 
-        btnNextMonth.setOnClickListener {
-            currentMonth.add(Calendar.MONTH, 1)
-            updateMonthDisplay()
-            fetchBudgetData()
-        }
 
-        toggleGroup.addOnButtonCheckedListener { _, _, _ ->
-            fetchBudgetData()
-        }
-
-        fetchBudgetData()
-
-        settingsIcon = findViewById(R.id.settingsIcon)
-
-        settingsIcon.setOnClickListener {
-            val intent = Intent(this, CategoryPage::class.java).apply {
-                putExtra("USER_ID", userId)
-            }
-            startActivity(intent)
-        }
-
-        wallletIcon = findViewById(R.id.logo)
-
-        wallletIcon.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java).apply {
-            }
-            startActivity(intent)
-        }
-
-        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigation)
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_transactions -> {
-                    // Create the intent
-                    val intent = Intent(this, TransactionPage::class.java).apply {
-                        // Add the USER_ID as an extra to the intent
-                        putExtra("USER_ID", userId)
-                    }
-                    // Start the TransactionPage activity
-                    startActivity(intent)
-                    true // Indicate that the item click was handled
-                }
-                R.id.nav_home -> {
-                    // If nav_home should reload MainPage or perform an action that needs the userId
-                    val intent = Intent(this, MainPage::class.java).apply {
-                        putExtra("USER_ID", userId)
-                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    }
-                    startActivity(intent)
-                    true
-                }
-                R.id.nav_analysis -> {
-                    val intent = Intent(this, BudgetActivity::class.java).apply {
-                        // Pass the userId to the BudgetActivity
-                        putExtra("USER_ID", userId)
-                    }
-                    // Start the BudgetActivity activity
-                    startActivity(intent)
-                    true
-                }
-                else -> false // Let other potential listeners handle the click
-            }
-        }
     }
 
-
-    private fun updateMonthDisplay() {
-        val formatter = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
-        txtCurrentMonth.text = formatter.format(currentMonth.time)
-    }
-
-    private fun fetchBudgetData() {
+    private fun loadBudgetData() {
         val userId = auth.currentUser?.uid ?: return
-        val period = when (toggleGroup.checkedButtonId) {
-            R.id.btnWeek -> "week"
-            R.id.btnMonth -> "month"
-            R.id.btnYear -> "year"
-            else -> "month"
-        }
 
-        val monthKey = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(currentMonth.time)
-
-        firestore.collection("budgets")
-            .document(userId)
-            .collection(period)
-            .document(monthKey)
+        db.collection("transactions")
+            .whereEqualTo("userId", userId)
             .get()
-            .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
-                    val savingsUsed = document.getDouble("savingsUsed") ?: 0.0
-                    val savingsGoal = document.getDouble("savingsGoal") ?: 1.0
-                    val expenseUsed = document.getDouble("expenseUsed") ?: 0.0
-                    val expenseLimit = document.getDouble("expenseLimit") ?: 1.0
-                    val topCategory = document.getString("topCategory") ?: "No data"
+            .addOnSuccessListener { result ->
+                var totalExpenses = 0.0
+                var totalIncome = 0.0
+                val categoryMap = mutableMapOf<String, Double>()
 
-                    val savingsProgress = ((savingsUsed / savingsGoal) * 100).toInt().coerceIn(0, 100)
-                    val expenseProgress = ((expenseUsed / expenseLimit) * 100).toInt().coerceIn(0, 100)
+                for (doc in result) {
+                    val transaction = doc.toObject(Transaction::class.java)
 
-                    tvSavingsGoal.text = "goal - R${String.format("%.2f", savingsGoal)}"
-                    tvTechGoal.text = "limit - R${String.format("%.2f", expenseLimit)}"
-                    progressSavings.progress = savingsProgress
-                    progressTech.progress = expenseProgress
-
-                    tvCurrentSpending.text = "Current spending: R${String.format("%.2f", expenseUsed)}"
-                    tvTopCategory.text = "Top category: $topCategory"
-                } else {
-                    resetViews()
+                    val amount = transaction.amount
+                    if (amount < 0) {
+                        // Expense (store positive value for total expenses)
+                        totalExpenses += -amount
+                        categoryMap[transaction.category] =
+                            categoryMap.getOrDefault(transaction.category, 0.0) + -amount
+                    } else {
+                        // Income
+                        totalIncome += amount
+                    }
                 }
+
+                val savings = totalIncome - totalExpenses
+                val savingsPercent = ((savings / savingsGoal) * 100).toInt().coerceIn(0, 100)
+                val expensePercent = ((totalExpenses / expenseLimit) * 100).toInt().coerceIn(0, 100)
+
+                // Update progress bars
+                progressSavings.progress = savingsPercent
+                progressLimit.progress = expensePercent
+
+                // Update text views with formatted currency
+                tvSavingsGoal.text = "Goal: ${currencyFormat.format(savingsGoal)}"
+                tvLimit.text = "Limit: ${currencyFormat.format(expenseLimit)}"
+                tvCurrentSpending.text = "Spent: ${currencyFormat.format(totalExpenses)} | Saved: ${currencyFormat.format(savings)}"
+
+                // Show top spending category
+                val topCategory = categoryMap.maxByOrNull { it.value }?.key ?: "N/A"
+                tvTopCategory.text = "Top Category: $topCategory"
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Failed to load budget data.", Toast.LENGTH_SHORT).show()
-                resetViews()
+                tvCurrentSpending.text = "Failed to load data"
+                tvTopCategory.text = ""
             }
     }
 
-    private fun resetViews() {
-        tvSavingsGoal.text = "goal - R0.00"
-        tvTechGoal.text = "limit - R0.00"
-        progressSavings.progress = 0
-        progressTech.progress = 0
-        tvCurrentSpending.text = "Current spending: R0.00"
-        tvTopCategory.text = "No spending data available"
+    private fun showNewBudgetDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_new_budget, null)
+        val dialogBuilder = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setTitle("Set New Budget")
+            .setPositiveButton("Save") { dialog, _ ->
+                val savingsInput = dialogView.findViewById<EditText>(R.id.etGoal)
+                val limitInput = dialogView.findViewById<EditText>(R.id.etLimit)
+
+                val newSavingsGoal = savingsInput.text.toString().toDoubleOrNull()
+                val newExpenseLimit = limitInput.text.toString().toDoubleOrNull()
+
+                if (newSavingsGoal != null) savingsGoal = newSavingsGoal
+                if (newExpenseLimit != null) expenseLimit = newExpenseLimit
+
+                loadBudgetData()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+
+        dialogBuilder.create().show()
     }
 }
