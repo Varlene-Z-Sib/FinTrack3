@@ -1,16 +1,12 @@
 package com.example.fintrack3
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
-import android.util.Patterns
 import android.widget.*
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
+import com.example.fintrack3.MainPage
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,22 +18,14 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
 
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            Toast.makeText(this, "Storage permission granted!", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Storage permission denied!", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Initialize FirebaseAuth
         auth = FirebaseAuth.getInstance()
 
+        // Bind views
         emailInput = findViewById(R.id.emailInput)
         passwordInput = findViewById(R.id.passwordInput)
         loginButton = findViewById(R.id.loginButton)
@@ -48,15 +36,8 @@ class MainActivity : AppCompatActivity() {
             val email = emailInput.text.toString().trim()
             val password = passwordInput.text.toString().trim()
 
-            // Validate fields
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Validate email format
-            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -67,9 +48,7 @@ class MainActivity : AppCompatActivity() {
                         startActivity(Intent(this, MainPage::class.java))
                         finish()
                     } else {
-                        val errorMsg = task.exception?.message ?: "Unknown error"
-                        Toast.makeText(this, "Login failed: $errorMsg", Toast.LENGTH_LONG).show()
-                        Log.e("LoginError", errorMsg)
+                        Toast.makeText(this, "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
         }
@@ -78,25 +57,5 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SignupActivity::class.java))
         }
 
-        // Check/request storage permission
-        checkAndRequestStoragePermission()
-    }
-
-    private fun checkAndRequestStoragePermission() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                // Permission granted
-            }
-            shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) -> {
-                Toast.makeText(this, "Storage access is needed to load files.", Toast.LENGTH_LONG).show()
-                requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-            else -> {
-                requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-        }
     }
 }
