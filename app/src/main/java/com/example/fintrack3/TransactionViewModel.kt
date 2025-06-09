@@ -3,39 +3,47 @@ package com.example.fintrack3
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
-class TransactionViewModel(private val finTrackDB: FinTrackDB, userId: String?) : ViewModel() {
+class TransactionViewModel(
+    private val firestore: FirebaseFirestore,
+    private val userId: String
+) : ViewModel() {
 
-    private val _transactions = MutableLiveData<List<TransactionItem>>()
-    val transactions: LiveData<List<TransactionItem>> = _transactions
+    private val _transactions = MutableLiveData<List<Transaction>>()
+    val transactions: LiveData<List<Transaction>> = _transactions
+
+    private var listenerRegistration: ListenerRegistration? = null
 
     init {
-        if (!userId.isNullOrEmpty()) {
-            loadTransactions(userId)
-        } else {
-            // Handle the case where userId is null or empty, perhaps show an error or empty list
-            _transactions.value = emptyList()
-        }
+        listenToTransactions()
     }
 
-    private fun loadTransactions(userId: String) {
-        viewModelScope.launch {
-            val transactionList = finTrackDB.transactionDao().getAllUserTransactions(userId)
-            _transactions.value = transactionList.map { transaction ->
-                TransactionItem(
-                    amount = String.format("R %.2f", transaction.amount),
-                    description = transaction.description,
-                    hasAttachment = !transaction.image.isNullOrEmpty()
-                )
+    private fun listenToTransactions() {
+        listenerRegistration = firestore.collection("transactions")
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    // Handle errors
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && !snapshot.isEmpty) {
+                    val transactionList = snapshot.documents.mapNotNull { doc ->
+                        doc.toObject(Transaction::class.java)?.apply {
+                            transactionId = doc.id // assign Firestore doc id if you want
+                        }
+                    }
+                    _transactions.postValue(transactionList)
+                } else {
+                    _transactions.postValue(emptyList())
+                }
             }
-        }
     }
 
-    data class TransactionItem(
-        val amount: String,
-        val description: String,
-        val hasAttachment: Boolean
-    )
+    override fun onCleared() {
+        super.onCleared()
+        listenerRegistration?.remove()
+    }
 }

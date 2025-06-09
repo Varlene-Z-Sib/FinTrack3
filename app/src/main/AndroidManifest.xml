@@ -25,6 +25,8 @@
         <activity
             android:name=".BudgetActivity"
             android:exported="false" />
+        <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
         <activity
             android:name=".CategoryActivity"
             android:exported="true" />

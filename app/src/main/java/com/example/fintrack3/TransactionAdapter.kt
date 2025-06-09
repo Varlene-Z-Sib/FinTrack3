@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fintrack3.R
 
-class TransactionAdapter : ListAdapter<TransactionViewModel.TransactionItem, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()) {
+class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
         val itemView = LayoutInflater.from(parent.context).inflate(R.layout.item_transaction, parent, false)
@@ -27,19 +27,23 @@ class TransactionAdapter : ListAdapter<TransactionViewModel.TransactionItem, Tra
         private val txtDescription: TextView = itemView.findViewById(R.id.txtDescription)
         private val imgAttachment: ImageView = itemView.findViewById(R.id.imgAttachment)
 
-        fun bind(item: TransactionViewModel.TransactionItem) {
-            txtAmount.text = item.amount
+        fun bind(item: Transaction) {
+            // Format amount to string with currency symbol if you want
+            txtAmount.text = "$${item.amount}" // Customize formatting as needed
             txtDescription.text = item.description
-            imgAttachment.visibility = if (item.hasAttachment) View.VISIBLE else View.GONE
+
+            // Show attachment icon if image URL is present and not empty
+            imgAttachment.visibility = if (!item.image.isNullOrEmpty()) View.VISIBLE else View.GONE
         }
     }
 
-    class TransactionDiffCallback : DiffUtil.ItemCallback<TransactionViewModel.TransactionItem>() {
-        override fun areItemsTheSame(oldItem: TransactionViewModel.TransactionItem, newItem: TransactionViewModel.TransactionItem): Boolean {
-            return oldItem.description == newItem.description && oldItem.amount == newItem.amount // Adjust based on a unique identifier if available
+    class TransactionDiffCallback : DiffUtil.ItemCallback<Transaction>() {
+        override fun areItemsTheSame(oldItem: Transaction, newItem: Transaction): Boolean {
+            // Use unique Firestore document ID if available
+            return oldItem.transactionId == newItem.transactionId
         }
 
-        override fun areContentsTheSame(oldItem: TransactionViewModel.TransactionItem, newItem: TransactionViewModel.TransactionItem): Boolean {
+        override fun areContentsTheSame(oldItem: Transaction, newItem: Transaction): Boolean {
             return oldItem == newItem
         }
     }

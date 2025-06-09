@@ -1,13 +1,15 @@
-package com.example.fintrack3.models
+package com.example.fintrack3
 
-import java.util.*
+import com.google.firebase.firestore.IgnoreExtraProperties
+import java.util.Date
 
+@IgnoreExtraProperties
 data class Transaction(
-    val transactionId: String = "", // Firestore auto-ID or custom
+    var transactionId: String? = null, // Firestore doc ID
     val amount: Double = 0.0,
     val description: String = "",
     val image: String? = null,
-    val date: Date = Date(),
+    val date: Date? = null,
     val userId: String = "",
     val category: String = ""
 )

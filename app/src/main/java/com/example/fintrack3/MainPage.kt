@@ -10,18 +10,25 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.ktx.toObjects
+import com.example.fintrack3.models.Transaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.*
 
 class MainPage : AppCompatActivity() {
 
     private var userId: String? = null
     private lateinit var totalExpenseTextView: TextView
-    private lateinit var transactionDao: TransactionDao
     private lateinit var settingsIcon: ImageView
-    private lateinit var viewBudgetCard: LinearLayout
+    // private lateinit var viewBudgetCard: LinearLayout // Uncomment if used
+
+    private val firestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,55 +41,29 @@ class MainPage : AppCompatActivity() {
             insets
         }
 
-        // Get the userId passed from MainActivity
         userId = intent.getStringExtra("USER_ID")
 
-        // Initialize database and TransactionDao
-        val db = FinTrackDB.getInstance(applicationContext)
-        transactionDao = db.transactionDao()
-
-        // Find the TextView for displaying total expenses
         totalExpenseTextView = findViewById(R.id.txtexpensetotal)
+        settingsIcon = findViewById(R.id.settingsIcon)
 
-        // Initialize the settingsIcon
-        settingsIcon = findViewById(R.id.settingsIcon) // Find the ImageView by its ID
-
-        // Set click listener for the settingsIcon
         settingsIcon.setOnClickListener {
-            // Create an intent to open CategoryPage
             val intent = Intent(this, CategoryPage::class.java).apply {
-                // Pass the userId to the CategoryPage
                 putExtra("USER_ID", userId)
             }
-            // Start the CategoryPage activity
             startActivity(intent)
         }
-/*
-        // Set click listener for the viewBudgetCard
-        viewBudgetCard.setOnClickListener {
-            val intent = Intent(this, BudgetActivity::class.java).apply {
-                // Pass the userId to the BudgetActivity
-                putExtra("USER_ID", userId)
-            }
-            // Start the BudgetActivity activity
-            startActivity(intent)
-        }*/
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_transactions -> {
-                    // Create the intent
                     val intent = Intent(this, TransactionPage::class.java).apply {
-                        // Add the USER_ID as an extra to the intent
                         putExtra("USER_ID", userId)
                     }
-                    // Start the TransactionPage activity
                     startActivity(intent)
-                    true // Indicate that the item click was handled
+                    true
                 }
                 R.id.nav_home -> {
-                    // If nav_home should reload MainPage or perform an action that needs the userId
                     val intent = Intent(this, MainPage::class.java).apply {
                         putExtra("USER_ID", userId)
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -92,34 +73,49 @@ class MainPage : AppCompatActivity() {
                 }
                 R.id.nav_analysis -> {
                     val intent = Intent(this, BudgetActivity::class.java).apply {
-                        // Pass the userId to the BudgetActivity
                         putExtra("USER_ID", userId)
                     }
-                    // Start the BudgetActivity activity
                     startActivity(intent)
                     true
                 }
-                else -> false // Let other potential listeners handle the click
+                else -> false
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // Fetch and display total expenses every time the activity resumes
         if (!userId.isNullOrEmpty()) {
-            CoroutineScope(Dispatchers.IO).launch {
-                val totalExpense = transactionDao.getTotalExpense(userId.toString())
-                withContext(Dispatchers.Main) {
-                    totalExpenseTextView.text = if (totalExpense != null) {
-                        "R %.2f".format(totalExpense)
-                    } else {
-                        "R 0.00"
-                    }
-                }
-            }
+            fetchAndDisplayTotalExpense(userId!!)
         } else {
             totalExpenseTextView.text = "R 0.00"
+        }
+    }
+
+    private fun fetchAndDisplayTotalExpense(userId: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Query Firestore for all transactions of this user
+                val snapshot: QuerySnapshot = firestore.collection("transactions")
+                    .whereEqualTo("userId", userId)
+                    .get()
+                    .await()
+
+                val transactions: List<Transaction> = snapshot.toObjects(Transaction::class.java)
+
+                // Calculate total expenses (assuming expenses are negative or use category to filter)
+                // Adjust this logic if you distinguish between income and expense transactions.
+                val totalExpense = transactions.sumOf { it.amount }
+
+                withContext(Dispatchers.Main) {
+                    totalExpenseTextView.text = "R %.2f".format(totalExpense)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    totalExpenseTextView.text = "R 0.00"
+                }
+            }
         }
     }
 }
