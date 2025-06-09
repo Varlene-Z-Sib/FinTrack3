@@ -2,6 +2,7 @@ package com.example.fintrack3
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
@@ -54,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         signupLink.setOnClickListener {
+            Log.d("SignupLink", "Signup link clicked")
             startActivity(Intent(this, SignupActivity::class.java))
         }
 

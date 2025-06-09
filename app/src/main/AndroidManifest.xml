@@ -42,6 +42,9 @@
         <activity
             android:name=".MainPage"
             android:exported="false" />
+
+        <activity android:name=".SignupActivity" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
