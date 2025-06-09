@@ -20,7 +20,7 @@ class CategoryViewModel(application: Application) : AndroidViewModel(application
     ) {
         val categoryId = UUID.randomUUID().toString()
         val newCategory = Category(
-            id = categoryId,
+            categoryId = categoryId,
             userId = userId,
             name = name,
             description = description,

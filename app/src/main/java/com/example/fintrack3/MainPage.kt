@@ -3,7 +3,6 @@ package com.example.fintrack3
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -12,14 +11,12 @@ import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
-import com.google.firebase.firestore.ktx.toObjects
 import com.example.fintrack3.models.Transaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.util.*
 
 class MainPage : AppCompatActivity() {
 

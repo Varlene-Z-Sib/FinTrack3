@@ -1,4 +1,4 @@
-package com.example.fintrack3
+package com.example.fintrack3.models
 
 import com.google.firebase.firestore.IgnoreExtraProperties
 import java.util.Date

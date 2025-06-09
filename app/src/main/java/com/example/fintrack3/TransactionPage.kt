@@ -35,8 +35,9 @@ class TransactionPage : AppCompatActivity() {
 
         if (userId == null) {
             // User not logged in, redirect to login or handle accordingly
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
+            val intent = Intent(this, MainActivity::class.java) // or whatever activity you want
+            startActivity(intent)
+
             return
         }
 

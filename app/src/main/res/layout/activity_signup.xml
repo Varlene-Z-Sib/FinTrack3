@@ -62,7 +62,6 @@
         android:layout_height="50dp"
         android:text="Sign Up"
         android:backgroundTint="#5ED35E"
-        android:background="@drawable/rounded_button"
         app:layout_constraintTop_toBottomOf="@id/signupConfirmPassword"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

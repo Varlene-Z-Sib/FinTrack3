@@ -8,13 +8,14 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -23,7 +24,6 @@ import org.json.JSONObject
 import java.io.File
 import java.util.*
 
-private const val REQUEST_CODE_PICK_IMAGE = 124
 private const val REQUEST_CODE_STORAGE_PERMISSION = 457
 
 // Cloudinary constants - Replace with your info
@@ -38,6 +38,9 @@ class NewTransaction : AppCompatActivity() {
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
+    // New launcher for picking image
+    private lateinit var pickImageLauncher: ActivityResultLauncher<Intent>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_transaction)
@@ -51,6 +54,31 @@ class NewTransaction : AppCompatActivity() {
         val addButton = findViewById<Button>(R.id.btn_add)
         val cancelButton = findViewById<Button>(R.id.btn_cancel)
         val pictureButton = findViewById<Button>(R.id.btn_picture)
+
+        // Initialize Activity Result Launcher
+        pickImageLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data
+                data?.data?.let { uri ->
+                    selectedImageUri = uri
+                    val file = uriToFile(uri)
+                    uploadImageToCloudinary(file,
+                        onSuccess = { imageUrl ->
+                            runOnUiThread {
+                                filepathText.text = imageUrl
+                                Toast.makeText(this, "Image uploaded", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onError = { errorMsg ->
+                            runOnUiThread {
+                                Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
+                            }
+                        })
+                }
+            }
+        }
 
         // Set spinner categories (you can dynamically load this from Firestore if you want)
         val categories = listOf("Food", "Tech", "Investment", "Shopping")
@@ -163,33 +191,10 @@ class NewTransaction : AppCompatActivity() {
         }
     }
 
-    // Open gallery to pick image
+    // Open gallery to pick image using new Activity Result API
     private fun openImagePicker() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, REQUEST_CODE_PICK_IMAGE)
-    }
-
-    // Receive image URI and upload to Cloudinary
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_PICK_IMAGE && resultCode == Activity.RESULT_OK) {
-            data?.data?.let { uri ->
-                selectedImageUri = uri
-                val file = uriToFile(uri)
-                uploadImageToCloudinary(file,
-                    onSuccess = { imageUrl ->
-                        runOnUiThread {
-                            filepathText.text = imageUrl
-                            Toast.makeText(this, "Image uploaded", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    onError = { errorMsg ->
-                        runOnUiThread {
-                            Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
-                        }
-                    })
-            }
-        }
+        pickImageLauncher.launch(intent)
     }
 
     // Convert Uri to File
