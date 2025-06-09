@@ -8,7 +8,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.example.fintrack3.models.Transaction
+
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.NumberFormat
@@ -24,9 +24,7 @@ class BudgetActivity : AppCompatActivity() {
     private lateinit var tvSavingsGoal: TextView
     private lateinit var tvLimit: TextView
     private lateinit var progressSavings: ProgressBar
-    private lateinit var progressLimit: ProgressBar
-    private lateinit var btnNewBudget: Button
-    private lateinit var btnViewGraphs: Button
+
 
     // Default budget values
     private var savingsGoal = 3000.0
@@ -48,7 +46,7 @@ class BudgetActivity : AppCompatActivity() {
         tvSavingsGoal = findViewById(R.id.tvSavingsGoal)
         tvLimit = findViewById(R.id.tvLimit)
         progressSavings = findViewById(R.id.progressSavings)
-        progressLimit = findViewById(R.id.progressLimit)
+<<<<<<
 
         btnNewBudget = findViewById(R.id.btnNewBudget)
         btnViewGraphs = findViewById(R.id.btnViewGraphs)
@@ -57,12 +55,7 @@ class BudgetActivity : AppCompatActivity() {
             showNewBudgetDialog()
         }
 
-        btnViewGraphs.setOnClickListener {
-            val intent = Intent(this, GraphActivity::class.java) // Adjust if your Graph activity class is named differently
-            startActivity(intent)
-        }
 
-        loadBudgetData()
     }
 
     private fun loadBudgetData() {
