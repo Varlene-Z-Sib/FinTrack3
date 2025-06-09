@@ -19,5 +19,19 @@
     <string name="desc_previous_month">Previous month</string>
     <string name="desc_next_month">Next month</string>
 
-
+    <string name="budget_title">Budget</string>
+    <string name="previous_month">Previous month</string>
+    <string name="next_month">Next month</string>
+    <string name="week">Week</string>
+    <string name="month">Month</string>
+    <string name="year">Year</string>
+    <string name="savings">Savings</string>
+    <string name="goal_label">goal - R50 000</string>
+    <string name="current_spending">Current spending: R0.00</string>
+    <string name="no_spending">No spending data available</string>
+    <string name="expense_limit">Expense Limit</string>
+    <string name="limit_label">limit - R600</string>
+    <string name="view_graphs">View Graphs</string>
+    <string name="new_budget">New budget</string>
+    <string name="current_month">June 2025</string>
 </resources>
