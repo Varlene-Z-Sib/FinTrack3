@@ -19,6 +19,8 @@ class TransactionPage : AppCompatActivity() {
     private lateinit var transactionViewModel: TransactionViewModel
     private lateinit var recyclerViewTransactions: RecyclerView
     private lateinit var transactionAdapter: TransactionAdapter
+    private lateinit var settingsIcon: ImageView
+    private lateinit var wallletIcon: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,18 +61,56 @@ class TransactionPage : AppCompatActivity() {
             transactionAdapter.submitList(transactions)
         }
 
+        settingsIcon = findViewById(R.id.settingsIcon)
+
+        settingsIcon.setOnClickListener {
+            val intent = Intent(this, CategoryPage::class.java).apply {
+                putExtra("USER_ID", userId)
+            }
+            startActivity(intent)
+        }
+
+        wallletIcon = findViewById(R.id.logo)
+
+        wallletIcon.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java).apply {
+            }
+            startActivity(intent)
+        }
+
         // Bottom Navigation
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
+                R.id.nav_transactions -> {
+                    // Create the intent
+                    val intent = Intent(this, TransactionPage::class.java).apply {
+                        // Add the USER_ID as an extra to the intent
+                        putExtra("USER_ID", userId)
+                    }
+                    // Start the TransactionPage activity
+                    startActivity(intent)
+                    true // Indicate that the item click was handled
+                }
                 R.id.nav_home -> {
+                    // If nav_home should reload MainPage or perform an action that needs the userId
                     val intent = Intent(this, MainPage::class.java).apply {
+                        putExtra("USER_ID", userId)
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                     }
                     startActivity(intent)
                     true
                 }
-                else -> false
+                R.id.nav_analysis -> {
+                    val intent = Intent(this, BudgetActivity::class.java).apply {
+                        // Pass the userId to the BudgetActivity
+                        putExtra("USER_ID", userId)
+                    }
+                    // Start the BudgetActivity activity
+                    startActivity(intent)
+                    true
+                }
+                else -> false // Let other potential listeners handle the click
             }
         }
 

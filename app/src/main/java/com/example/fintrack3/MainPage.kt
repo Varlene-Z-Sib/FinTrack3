@@ -23,6 +23,7 @@ class MainPage : AppCompatActivity() {
     private var userId: String? = null
     private lateinit var totalExpenseTextView: TextView
     private lateinit var settingsIcon: ImageView
+    private lateinit var wallletIcon: ImageView
     // private lateinit var viewBudgetCard: LinearLayout // Uncomment if used
 
     private val firestore = FirebaseFirestore.getInstance()
@@ -38,7 +39,8 @@ class MainPage : AppCompatActivity() {
             insets
         }
 
-        userId = intent.getStringExtra("USER_ID")
+        // Get the userId passed from MainPage
+        val userId = intent.getStringExtra("USER_ID")
 
         totalExpenseTextView = findViewById(R.id.txtexpensetotal)
         settingsIcon = findViewById(R.id.settingsIcon)
@@ -50,17 +52,29 @@ class MainPage : AppCompatActivity() {
             startActivity(intent)
         }
 
+        wallletIcon = findViewById(R.id.walletIcon)
+
+        wallletIcon.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java).apply {
+            }
+            startActivity(intent)
+        }
+
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_transactions -> {
+                    // Create the intent
                     val intent = Intent(this, TransactionPage::class.java).apply {
+                        // Add the USER_ID as an extra to the intent
                         putExtra("USER_ID", userId)
                     }
+                    // Start the TransactionPage activity
                     startActivity(intent)
-                    true
+                    true // Indicate that the item click was handled
                 }
                 R.id.nav_home -> {
+                    // If nav_home should reload MainPage or perform an action that needs the userId
                     val intent = Intent(this, MainPage::class.java).apply {
                         putExtra("USER_ID", userId)
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -70,12 +84,14 @@ class MainPage : AppCompatActivity() {
                 }
                 R.id.nav_analysis -> {
                     val intent = Intent(this, BudgetActivity::class.java).apply {
+                        // Pass the userId to the BudgetActivity
                         putExtra("USER_ID", userId)
                     }
+                    // Start the BudgetActivity activity
                     startActivity(intent)
                     true
                 }
-                else -> false
+                else -> false // Let other potential listeners handle the click
             }
         }
     }

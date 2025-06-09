@@ -1,8 +1,10 @@
 package com.example.fintrack3
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -21,6 +23,8 @@ class BudgetActivity : AppCompatActivity() {
     private lateinit var btnPrevMonth: ImageButton
     private lateinit var btnNextMonth: ImageButton
     private lateinit var toggleGroup: MaterialButtonToggleGroup
+    private lateinit var settingsIcon: ImageView
+    private lateinit var wallletIcon: ImageView
 
     private var currentMonth: Calendar = Calendar.getInstance()
 
@@ -45,6 +49,8 @@ class BudgetActivity : AppCompatActivity() {
 
         updateMonthDisplay()
 
+        val userId = intent.getStringExtra("USER_ID")
+
         // Handle month changes
         btnPrevMonth.setOnClickListener {
             currentMonth.add(Calendar.MONTH, -1)
@@ -63,7 +69,60 @@ class BudgetActivity : AppCompatActivity() {
         }
 
         fetchBudgetData()
+
+        settingsIcon = findViewById(R.id.settingsIcon)
+
+        settingsIcon.setOnClickListener {
+            val intent = Intent(this, CategoryPage::class.java).apply {
+                putExtra("USER_ID", userId)
+            }
+            startActivity(intent)
+        }
+
+        wallletIcon = findViewById(R.id.logo)
+
+        wallletIcon.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java).apply {
+            }
+            startActivity(intent)
+        }
+
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_transactions -> {
+                    // Create the intent
+                    val intent = Intent(this, TransactionPage::class.java).apply {
+                        // Add the USER_ID as an extra to the intent
+                        putExtra("USER_ID", userId)
+                    }
+                    // Start the TransactionPage activity
+                    startActivity(intent)
+                    true // Indicate that the item click was handled
+                }
+                R.id.nav_home -> {
+                    // If nav_home should reload MainPage or perform an action that needs the userId
+                    val intent = Intent(this, MainPage::class.java).apply {
+                        putExtra("USER_ID", userId)
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
+                    startActivity(intent)
+                    true
+                }
+                R.id.nav_analysis -> {
+                    val intent = Intent(this, BudgetActivity::class.java).apply {
+                        // Pass the userId to the BudgetActivity
+                        putExtra("USER_ID", userId)
+                    }
+                    // Start the BudgetActivity activity
+                    startActivity(intent)
+                    true
+                }
+                else -> false // Let other potential listeners handle the click
+            }
+        }
     }
+
 
     private fun updateMonthDisplay() {
         val formatter = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
