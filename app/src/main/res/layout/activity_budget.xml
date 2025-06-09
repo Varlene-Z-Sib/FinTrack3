@@ -108,12 +108,12 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
-    <!-- Savings Progress -->
+    <!-- Income Progress -->
     <TextView
         android:id="@+id/tvSavingsLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Savings Progress"
+        android:text="Income Progress"
         android:textSize="14sp"
         android:textStyle="bold"
         android:layout_marginTop="24dp"
@@ -252,3 +252,5 @@
         app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

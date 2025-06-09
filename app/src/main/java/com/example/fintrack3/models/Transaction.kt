@@ -11,5 +11,8 @@ data class Transaction(
     val image: String? = null,
     val date: Date? = null,
     val userId: String = "",
-    val category: String = ""
+    val category: String = "",
+    val type: String = "" // Added type property
 )
+
+

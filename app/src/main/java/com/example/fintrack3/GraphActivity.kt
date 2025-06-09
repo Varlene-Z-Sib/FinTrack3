@@ -112,11 +112,10 @@ class GraphActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             val categorySpending = mutableMapOf<String, Double>()
-            val dailySpending = mutableMapOf<String, Double>()
+            val dailyNetBalance = mutableMapOf<String, Double>() // Changed to net balance
 
             val snapshot = db.collection("transactions")
                 .whereEqualTo("userId", userId)
-                .whereEqualTo("type", "Expense")
                 .whereGreaterThanOrEqualTo("date", Timestamp(startDate))
                 .whereLessThanOrEqualTo("date", Timestamp(endDate))
                 .get()
@@ -127,28 +126,32 @@ class GraphActivity : AppCompatActivity() {
                 val amount = doc.getDouble("amount") ?: 0.0
                 val date = doc.getTimestamp("date")?.toDate() ?: continue
 
-                categorySpending[category] = categorySpending.getOrDefault(category, 0.0) + amount
+                // For Pie Chart (Category Spending - Expenses only)
+                if (amount < 0) {
+                    categorySpending[category] = categorySpending.getOrDefault(category, 0.0) + -amount
+                }
 
+                // For Bar Chart (Daily Net Balance)
                 val dayKey = SimpleDateFormat("MM/dd", Locale.getDefault()).format(date)
-                dailySpending[dayKey] = dailySpending.getOrDefault(dayKey, 0.0) + amount
+                dailyNetBalance[dayKey] = dailyNetBalance.getOrDefault(dayKey, 0.0) + amount
             }
 
             withContext(Dispatchers.Main) {
                 updatePieChart(categorySpending)
-                updateBarChart(dailySpending)
+                updateBarChart(dailyNetBalance)
             }
         }
     }
 
     private fun updatePieChart(categorySpending: Map<String, Double>) {
-        // After updatePieChart(...) in loadChartData:
         if (categorySpending.isNotEmpty()) {
             findViewById<TextView>(R.id.tvTopCategory).apply {
                 text = "Top: ${categorySpending.maxByOrNull { it.value }!!.key}"
                 visibility = View.VISIBLE
             }
+        } else {
+            findViewById<TextView>(R.id.tvTopCategory).visibility = View.GONE
         }
-
 
         val entries = categorySpending.map { PieEntry(it.value.toFloat(), it.key) }
 
@@ -169,21 +172,22 @@ class GraphActivity : AppCompatActivity() {
         pieChart.animateY(1000)
     }
 
-    private fun updateBarChart(dailySpending: Map<String, Double>) {
-        if (dailySpending.isEmpty()) {
+    private fun updateBarChart(dailyNetBalance: Map<String, Double>) {
+        if (dailyNetBalance.isEmpty()) {
             barChart.visibility = View.GONE
             tvNoDataBar.visibility = View.VISIBLE
             return
         }
 
-        val sorted = dailySpending.toSortedMap()
+        val sorted = dailyNetBalance.toSortedMap()
         val entries = sorted.entries.mapIndexed { index, entry ->
             BarEntry(index.toFloat(), entry.value.toFloat())
         }
         val labels = sorted.keys.toList()
 
-        val dataSet = BarDataSet(entries, "Daily Spending").apply {
-            color = ColorTemplate.rgb("#4CAF50")
+        val dataSet = BarDataSet(entries, "Daily Net Balance").apply {
+            // Dynamically set color based on positive/negative values
+            colors = entries.map { if (it.y >= 0) ColorTemplate.rgb("#4CAF50") else ColorTemplate.rgb("#F44336") }
             valueTextSize = 12f
             valueTextColor = Color.BLACK
         }
@@ -210,28 +214,45 @@ class GraphActivity : AppCompatActivity() {
         when (selectedPeriod) {
             "Today" -> {
                 startCal.set(Calendar.HOUR_OF_DAY, 0)
+                startCal.set(Calendar.MINUTE, 0)
+                startCal.set(Calendar.SECOND, 0)
                 endCal.set(Calendar.HOUR_OF_DAY, 23)
+                endCal.set(Calendar.MINUTE, 59)
+                endCal.set(Calendar.SECOND, 59)
             }
             "This Week" -> {
                 startCal.set(Calendar.DAY_OF_WEEK, startCal.firstDayOfWeek)
+                startCal.set(Calendar.HOUR_OF_DAY, 0)
+                startCal.set(Calendar.MINUTE, 0)
+                startCal.set(Calendar.SECOND, 0)
                 endCal.set(Calendar.DAY_OF_WEEK, startCal.firstDayOfWeek + 6)
+                endCal.set(Calendar.HOUR_OF_DAY, 23)
+                endCal.set(Calendar.MINUTE, 59)
+                endCal.set(Calendar.SECOND, 59)
             }
             "This Month" -> {
                 startCal.set(Calendar.DAY_OF_MONTH, 1)
+                startCal.set(Calendar.HOUR_OF_DAY, 0)
+                startCal.set(Calendar.MINUTE, 0)
+                startCal.set(Calendar.SECOND, 0)
                 endCal.set(Calendar.DAY_OF_MONTH, endCal.getActualMaximum(Calendar.DAY_OF_MONTH))
+                endCal.set(Calendar.HOUR_OF_DAY, 23)
+                endCal.set(Calendar.MINUTE, 59)
+                endCal.set(Calendar.SECOND, 59)
             }
             "This Year" -> {
                 startCal.set(Calendar.MONTH, Calendar.JANUARY)
                 startCal.set(Calendar.DAY_OF_MONTH, 1)
+                startCal.set(Calendar.HOUR_OF_DAY, 0)
+                startCal.set(Calendar.MINUTE, 0)
+                startCal.set(Calendar.SECOND, 0)
                 endCal.set(Calendar.MONTH, Calendar.DECEMBER)
                 endCal.set(Calendar.DAY_OF_MONTH, 31)
+                endCal.set(Calendar.HOUR_OF_DAY, 23)
+                endCal.set(Calendar.MINUTE, 59)
+                endCal.set(Calendar.SECOND, 59)
             }
         }
-
-        startCal.set(Calendar.MINUTE, 0)
-        startCal.set(Calendar.SECOND, 0)
-        endCal.set(Calendar.MINUTE, 59)
-        endCal.set(Calendar.SECOND, 59)
 
         return Pair(startCal.time, endCal.time)
     }
@@ -269,3 +290,5 @@ class GraphActivity : AppCompatActivity() {
         bottomNavigationView.selectedItemId = R.id.nav_analysis
     }
 }
+
+

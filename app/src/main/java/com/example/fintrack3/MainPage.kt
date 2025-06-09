@@ -23,8 +23,8 @@ class MainPage : AppCompatActivity() {
     private var userId: String? = null
     private lateinit var totalExpenseTextView: TextView
     private lateinit var settingsIcon: ImageView
-    private lateinit var wallletIcon: ImageView
-    // private lateinit var viewBudgetCard: LinearLayout // Uncomment if used
+    private lateinit var totalIncomeTextView: TextView // Added for total income
+    private lateinit var totalBalanceTextView: TextView // Added for total balance
 
     private val firestore = FirebaseFirestore.getInstance()
 
@@ -39,10 +39,11 @@ class MainPage : AppCompatActivity() {
             insets
         }
 
-        // Get the userId passed from MainPage
-        val userId = intent.getStringExtra("USER_ID")
+        userId = intent.getStringExtra("USER_ID")
 
         totalExpenseTextView = findViewById(R.id.txtexpensetotal)
+        totalIncomeTextView = findViewById(R.id.txtincometotal) // Assuming you'll add this TextView in activity_main_page.xml
+        totalBalanceTextView = findViewById(R.id.txtbalancetotal) // Assuming you'll add this TextView in activity_main_page.xml
         settingsIcon = findViewById(R.id.settingsIcon)
 
         settingsIcon.setOnClickListener {
@@ -52,29 +53,17 @@ class MainPage : AppCompatActivity() {
             startActivity(intent)
         }
 
-        wallletIcon = findViewById(R.id.walletIcon)
-
-        wallletIcon.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java).apply {
-            }
-            startActivity(intent)
-        }
-
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_transactions -> {
-                    // Create the intent
                     val intent = Intent(this, TransactionPage::class.java).apply {
-                        // Add the USER_ID as an extra to the intent
                         putExtra("USER_ID", userId)
                     }
-                    // Start the TransactionPage activity
                     startActivity(intent)
-                    true // Indicate that the item click was handled
+                    true
                 }
                 R.id.nav_home -> {
-                    // If nav_home should reload MainPage or perform an action that needs the userId
                     val intent = Intent(this, MainPage::class.java).apply {
                         putExtra("USER_ID", userId)
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -84,14 +73,12 @@ class MainPage : AppCompatActivity() {
                 }
                 R.id.nav_analysis -> {
                     val intent = Intent(this, BudgetActivity::class.java).apply {
-                        // Pass the userId to the BudgetActivity
                         putExtra("USER_ID", userId)
                     }
-                    // Start the BudgetActivity activity
                     startActivity(intent)
                     true
                 }
-                else -> false // Let other potential listeners handle the click
+                else -> false
             }
         }
     }
@@ -99,36 +86,53 @@ class MainPage : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (!userId.isNullOrEmpty()) {
-            fetchAndDisplayTotalExpense(userId!!)
+            fetchAndDisplayFinancialSummary(userId!!)
         } else {
             totalExpenseTextView.text = "R 0.00"
+            totalIncomeTextView.text = "R 0.00"
+            totalBalanceTextView.text = "R 0.00"
         }
     }
 
-    private fun fetchAndDisplayTotalExpense(userId: String) {
+    private fun fetchAndDisplayFinancialSummary(userId: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Query Firestore for all transactions of this user
                 val snapshot: QuerySnapshot = firestore.collection("transactions")
                     .whereEqualTo("userId", userId)
                     .get()
                     .await()
 
-                val transactions: List<Transaction> = snapshot.toObjects(Transaction::class.java)
+                var totalExpenses = 0.0
+                var totalIncome = 0.0
 
-                // Calculate total expenses (assuming expenses are negative or use category to filter)
-                // Adjust this logic if you distinguish between income and expense transactions.
-                val totalExpense = transactions.sumOf { it.amount }
+                for (document in snapshot.documents) {
+                    val transaction = document.toObject(Transaction::class.java)
+                    transaction?.let { // Ensure transaction is not null
+                        if (it.type == "Expense") {
+                            totalExpenses += it.amount
+                        } else if (it.type == "Income") {
+                            totalIncome += it.amount
+                        }
+                    }
+                }
+
+                val totalBalance = totalIncome - totalExpenses
 
                 withContext(Dispatchers.Main) {
-                    totalExpenseTextView.text = "R %.2f".format(totalExpense)
+                    totalExpenseTextView.text = "R %.2f".format(totalExpenses)
+                    totalIncomeTextView.text = "R %.2f".format(totalIncome)
+                    totalBalanceTextView.text = "R %.2f".format(totalBalance)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
                     totalExpenseTextView.text = "R 0.00"
+                    totalIncomeTextView.text = "R 0.00"
+                    totalBalanceTextView.text = "R 0.00"
                 }
             }
         }
     }
 }
+
+

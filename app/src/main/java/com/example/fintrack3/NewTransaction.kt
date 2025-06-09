@@ -6,6 +6,7 @@ import android.app.DatePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.*
@@ -100,10 +101,18 @@ class NewTransaction : AppCompatActivity() {
 
         // Picture button click - request permission and pick image
         pictureButton.setOnClickListener {
-            if (checkStoragePermission()) {
-                openImagePicker()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (checkMediaPermissions()) {
+                    openImagePicker()
+                } else {
+                    requestMediaPermissions()
+                }
             } else {
-                requestStoragePermission()
+                if (checkStoragePermission()) {
+                    openImagePicker()
+                } else {
+                    requestStoragePermission()
+                }
             }
         }
 
@@ -162,8 +171,7 @@ class NewTransaction : AppCompatActivity() {
         }
     }
 
-    // Storage permission check
-    // For Android 12L (API 32) and below
+    // Storage permission check for Android 12L (API 32) and below
     private fun checkStoragePermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             this,
@@ -171,41 +179,29 @@ class NewTransaction : AppCompatActivity() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    // Storage permission request for Android 12L (API 32) and below
+    private fun requestStoragePermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+            REQUEST_CODE_STORAGE_PERMISSION
+        )
+    }
 
-
-
-
-    // For Android 13 (API 33) and above
+    // Media permissions check for Android 13 (API 33) and above
     private fun checkMediaPermissions(): Boolean {
         val readImagesPermission = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.READ_MEDIA_IMAGES
         ) == PackageManager.PERMISSION_GRANTED
-
-        val readVideoPermission = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.READ_MEDIA_VIDEO
-        ) == PackageManager.PERMISSION_GRANTED
-
-        // You might only need READ_MEDIA_IMAGES if you're strictly picking images
-        return readImagesPermission && readVideoPermission
+        return readImagesPermission
     }
 
-    // For Android 13 (API 33) and above
+    // Media permissions request for Android 13 (API 33) and above
     private fun requestMediaPermissions() {
         ActivityCompat.requestPermissions(
             this,
-            arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO),
-            REQUEST_CODE_STORAGE_PERMISSION // Use the same request code for simplicity
-        )
-    }
-
-
-    // For Android 12L (API 32) and below
-    private fun requestStoragePermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+            arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
             REQUEST_CODE_STORAGE_PERMISSION
         )
     }
@@ -217,13 +213,12 @@ class NewTransaction : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_STORAGE_PERMISSION) {
-            // Check if any of the requested permissions were granted
             if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 openImagePicker()
             } else {
                 Toast.makeText(
                     this,
-                    "Storage permission is required to select an image",
+                    "Permission is required to select an image",
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -298,7 +293,7 @@ class NewTransaction : AppCompatActivity() {
     private fun getRealPathFromURI(contentURI: Uri): String? {
         // For Android 10 (API 29) and above, querying MediaStore.Images.Media.DATA is deprecated and might return null
         // or a different path than expected due to Scoped Storage.
-        // It's often better to work directly with the Uri and use content resolvers for file access.
+        // It\'s often better to work directly with the Uri and use content resolvers for file access.
         val cursor = contentResolver.query(contentURI, null, null, null, null)
         return cursor?.use {
             if (it.moveToFirst()) {
@@ -314,3 +309,5 @@ class NewTransaction : AppCompatActivity() {
         }
     }
 }
+
+

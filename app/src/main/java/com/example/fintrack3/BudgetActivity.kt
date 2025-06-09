@@ -8,7 +8,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-
+import com.example.fintrack3.models.Transaction
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.NumberFormat
@@ -24,10 +24,12 @@ class BudgetActivity : AppCompatActivity() {
     private lateinit var tvSavingsGoal: TextView
     private lateinit var tvLimit: TextView
     private lateinit var progressSavings: ProgressBar
-
+    private lateinit var progressLimit: ProgressBar
+    private lateinit var btnNewBudget: Button
+    private lateinit var btnViewGraphs: Button
 
     // Default budget values
-    private var savingsGoal = 3000.0
+    private var incomeGoal = 3000.0 // Renamed from savingsGoal
     private var expenseLimit = 1500.0
 
     private val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale("en", "ZA")) // R-format
@@ -46,7 +48,7 @@ class BudgetActivity : AppCompatActivity() {
         tvSavingsGoal = findViewById(R.id.tvSavingsGoal)
         tvLimit = findViewById(R.id.tvLimit)
         progressSavings = findViewById(R.id.progressSavings)
-<<<<<<
+        progressLimit = findViewById(R.id.progressLimit)
 
         btnNewBudget = findViewById(R.id.btnNewBudget)
         btnViewGraphs = findViewById(R.id.btnViewGraphs)
@@ -55,7 +57,12 @@ class BudgetActivity : AppCompatActivity() {
             showNewBudgetDialog()
         }
 
+        btnViewGraphs.setOnClickListener {
+            val intent = Intent(this, GraphActivity::class.java) // Adjust if your Graph activity class is named differently
+            startActivity(intent)
+        }
 
+        loadBudgetData()
     }
 
     private fun loadBudgetData() {
@@ -84,18 +91,17 @@ class BudgetActivity : AppCompatActivity() {
                     }
                 }
 
-                val savings = totalIncome - totalExpenses
-                val savingsPercent = ((savings / savingsGoal) * 100).toInt().coerceIn(0, 100)
+                val incomePercent = ((totalIncome / incomeGoal) * 100).toInt().coerceIn(0, 100) // New calculation
                 val expensePercent = ((totalExpenses / expenseLimit) * 100).toInt().coerceIn(0, 100)
 
                 // Update progress bars
-                progressSavings.progress = savingsPercent
+                progressSavings.progress = incomePercent // Use incomePercent
                 progressLimit.progress = expensePercent
 
                 // Update text views with formatted currency
-                tvSavingsGoal.text = "Goal: ${currencyFormat.format(savingsGoal)}"
+                tvSavingsGoal.text = "Goal: ${currencyFormat.format(incomeGoal)}" // Use incomeGoal
                 tvLimit.text = "Limit: ${currencyFormat.format(expenseLimit)}"
-                tvCurrentSpending.text = "Spent: ${currencyFormat.format(totalExpenses)} | Saved: ${currencyFormat.format(savings)}"
+                tvCurrentSpending.text = "Spent: ${currencyFormat.format(totalExpenses)} | Earned: ${currencyFormat.format(totalIncome)}" // Changed "Saved" to "Earned"
 
                 // Show top spending category
                 val topCategory = categoryMap.maxByOrNull { it.value }?.key ?: "N/A"
@@ -113,13 +119,13 @@ class BudgetActivity : AppCompatActivity() {
             .setView(dialogView)
             .setTitle("Set New Budget")
             .setPositiveButton("Save") { dialog, _ ->
-                val savingsInput = dialogView.findViewById<EditText>(R.id.etGoal)
+                val incomeInput = dialogView.findViewById<EditText>(R.id.etGoal) // Renamed from savingsInput
                 val limitInput = dialogView.findViewById<EditText>(R.id.etLimit)
 
-                val newSavingsGoal = savingsInput.text.toString().toDoubleOrNull()
+                val newIncomeGoal = incomeInput.text.toString().toDoubleOrNull() // Renamed from newSavingsGoal
                 val newExpenseLimit = limitInput.text.toString().toDoubleOrNull()
 
-                if (newSavingsGoal != null) savingsGoal = newSavingsGoal
+                if (newIncomeGoal != null) incomeGoal = newIncomeGoal // Use incomeGoal
                 if (newExpenseLimit != null) expenseLimit = newExpenseLimit
 
                 loadBudgetData()
@@ -132,3 +138,5 @@ class BudgetActivity : AppCompatActivity() {
         dialogBuilder.create().show()
     }
 }
+
+
