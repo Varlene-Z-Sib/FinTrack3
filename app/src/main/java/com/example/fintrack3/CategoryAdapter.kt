@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fintrack3.R
-import com.example.fintrack3.roomDB.Category
+import com.example.fintrack3.models.Category
 
 class CategoryAdapter(private var categoryList: List<Category>) :
     RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {

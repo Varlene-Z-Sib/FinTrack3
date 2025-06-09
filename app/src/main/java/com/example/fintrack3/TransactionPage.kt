@@ -11,7 +11,6 @@
     import androidx.lifecycle.ViewModelProvider
     import androidx.recyclerview.widget.LinearLayoutManager
     import androidx.recyclerview.widget.RecyclerView
-    import com.example.fintrack3.roomDB.FinTrackDB
     import com.google.android.material.bottomnavigation.BottomNavigationView
 
     class TransactionPage : AppCompatActivity() {

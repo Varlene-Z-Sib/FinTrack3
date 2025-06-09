@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fintrack3.roomDB.FinTrackDB
 import kotlinx.coroutines.launch
 
 class TransactionViewModel(private val finTrackDB: FinTrackDB, userId: String?) : ViewModel() {

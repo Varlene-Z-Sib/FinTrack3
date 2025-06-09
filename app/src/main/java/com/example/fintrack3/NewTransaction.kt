@@ -15,7 +15,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import android.util.Log
-import com.example.fintrack3.roomDB.FinTrackDB
 import com.example.myapplication.room.Transaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
